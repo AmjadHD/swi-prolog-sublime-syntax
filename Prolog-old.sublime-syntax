@@ -1,12 +1,12 @@
 %YAML 1.2
 ---
 # http://www.sublimetext.com/docs/3/syntax.html
-name: SWI-Prolog
+name: SWI-Prolog-old
 comment: SWI-Prolog Language
-file_extensions:
-  - pl
-  - pro
-first_line_match: ^#!.*\bswipl\b.
+# file_extensions:
+#   - pl
+#   - pro
+# first_line_match: ^#!.*\bswipl\b.
 scope: source.swi-prolog
 variables:
   number_lookahead: (?=[+-]?[0-9])

@@ -1,0 +1,130 @@
+name: SWI-Prolog
+extensions: pl pro
+first-line: ^#!.*\bswipl\b
+
+prototype = ( ~comment )* ;
+
+comment = '(%+).*\n?'{comment.line.percentage, 1: punctuation.definition.comment}
+        | nested-comment
+        ;
+
+nested-comment{comment.block.nested}
+    = '/\*(\*(?!/))?'{punctuation.definition.comment}
+      ( ~nested-comment )*
+      ~`*/`{punctuation.definition.comment}
+    ;
+
+main = ( shebang
+       | rule
+       | fact
+       )*
+     ;
+
+shebang{comment.line.number-sign}
+    = '^#!'{punctuation.definition.comment.number-sign}
+      ~'$\n?'
+    ;
+
+rule = atom-entity compound-term?
+       ( `:-`{keyword.operator.definition.begin} value )?
+       `.`{keyword.operator.definition.end}
+     ;
+
+fact = '(?=\S)' # Use a lookahead here as a capture-all for facts
+       `:-`{keyword.operator.definition.begin}?
+       value
+       `.`{keyword.operator.definition.end}
+     ;
+
+value-without-comma = single-value ( binary-operator-without-comma single-value )* ;
+
+value = single-value ( binary-operator single-value )* ;
+
+single-value = atom-functor compound-term?
+             | operator-compount-term
+             #| atom-constant
+             | cut
+             | number
+             | variable
+             | string
+             | list
+             | set
+             | unary-operator single-value
+             | `(`{punctuation.section.group.begin}
+               value
+               `)`{punctuation.section.group.end}
+             ;
+
+atom-constant{constant.character.atom} = atom ;
+atom-entity{entity.name.predicate} = atom ;
+atom-functor{meta.path variable.function.functor} = atom ;
+atom = '\b[a-z][[:alpha:]0-9_]*\b'
+     | atom-string
+     ;
+atom-string{include-prototype: false} = `'` (~escape-sequence)* ~`'` ;
+
+operator-compount-term
+    = '([~^&*\-+=|\\/<>][~^&*\-+=|\\/<>.,]*)(\()'{1: constant.character.swi-prolog, 2: punctuation.section.parens.begin}
+      ( value-without-comma
+        ( `,`{punctuation.separator.sequence} value-without-comma )*
+      )?
+      `)`{punctuation.section.parans.end}
+    ;
+
+escape-sequence = '\\([abcefnrstv\'\"`\n\\]|x\h\h+\\?|u\h{4}|U\h{8})'{constant.character.escape}
+                ;
+
+compound-term = `(`{punctuation.section.parens.begin}
+                ( value-without-comma
+                  ( ','{punctuation.separator.sequence} value-without-comma )*
+                )?
+                `)`{punctuation.section.parens.end}
+              ;
+
+number = '(0b)[01_]+'{constant.numeric.integer.binary, 1: punctuation.definition.number.base}
+       | '(0x)[\h_]+'{constant.numeric.integer.hexadecimal, 1: punctuation.definition.number.base}
+       | '(0o)[0-7_]+'{constant.numeric.integer.octal, 1: punctuation.definition.number.base}
+       | '([0-9]{1,2})(\')[0-9a-z]+'{constant.numeric.integer, 1: punctuation.definition.number.base, 2: punctuation.separator.base}
+       | '[0-9]+\.[0-9]+'{constant.numeric.float}
+       | '[+-]?[0-9_]+'{constant.numeric.integer} '[0-9_]+'{constant.numeric.integer}*
+       ;
+
+variable = '\b[A-Z][[:alpha:]0-9_]*\b|\b_[[:alpha:]0-9_]+\b'{variable.parameter}
+         | '_'{language.constant.underscore}
+         ;
+
+string{meta.string string.quoted.double, include-prototype: false}
+    = `"`{punctuation.definition.string.begin}
+      (~escape-sequence)*
+      ~`"`{punctuation.definition.string.end}
+    ;
+
+list = `[`{punctuation.section.brackets.begin}
+       ( value-without-comma
+         ( `,`{punctuation.separator.sequence} value-without-comma )*
+         ( `|`{punctuation.separator.sequence} value-without-comma )?
+       )?
+       `]`{punctuation.section.brackets.end}
+     ;
+
+set = `{`{punctuation.section.braces.begin}
+      ( value-without-comma
+        ( `,`{punctuation.separator.sequence} value-without-comma ) *
+      )?
+      `}`{punctuation.section.braces.begin}
+    ;
+
+cut = '!'{keyword.control.cut} ;
+
+unary-operator = '\+|-'{keyword.operator.arithmetic}
+               | `\+`{keyword.control.negation} ;
+
+binary-operator = binary-operator-without-comma
+                | ','{keyword.operator.logical.and}
+                ;
+
+binary-operator-without-comma
+    = '\bis\b|>>|\^|=\.\.|=?<|>=?|==?|\*\*?|\+|->?|/|#=|\\='{keyword.operator}
+    | ';'{keyword.operator.logical.or}
+    | '->'{keyword.operator.logical.if}
+    ;
