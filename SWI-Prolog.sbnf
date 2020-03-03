@@ -41,7 +41,8 @@ value-without-comma = single-value ( binary-operator-without-comma single-value 
 value = single-value ( binary-operator single-value )* ;
 
 single-value = atom-functor compound-term?
-             | operator-compount-term
+             | operator-compound-term
+             # TODO
              #| atom-constant
              | cut
              | number
@@ -63,7 +64,7 @@ atom = '\b[a-z][[:alpha:]0-9_]*\b'
      ;
 atom-string{include-prototype: false} = `'` (~escape-sequence)* ~`'` ;
 
-operator-compount-term
+operator-compound-term
     = '([~^&*\-+=|\\/<>][~^&*\-+=|\\/<>.,]*)(\()'{1: constant.character.swi-prolog, 2: punctuation.section.parens.begin}
       ( value-without-comma
         ( `,`{punctuation.separator.sequence} value-without-comma )*
