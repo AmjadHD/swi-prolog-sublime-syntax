@@ -1,12 +1,14 @@
 %YAML 1.2
 ---
+# This is the first rewrite of the prolog syntax before SBNF was created.
+# I've left this here as a comparison to the compiled syntax definition.
 # http://www.sublimetext.com/docs/3/syntax.html
-name: SWI-Prolog-old
+name: SWI-Prolog
 comment: SWI-Prolog Language
-# file_extensions:
-#   - pl
-#   - pro
-# first_line_match: ^#!.*\bswipl\b.
+file_extensions:
+  - pl
+  - pro
+first_line_match: ^#!.*\bswipl\b.
 scope: source.swi-prolog
 variables:
   number_lookahead: (?=[+-]?[0-9])
