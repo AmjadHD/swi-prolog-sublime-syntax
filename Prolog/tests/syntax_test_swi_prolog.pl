@@ -1,4 +1,4 @@
-% SYNTAX TEST "Packages/SWI-Prolog/SWI-Prolog.sublime-syntax"
+% SYNTAX TEST "Packages/Prolog/SWI-Prolog.sublime-syntax"
 
  /**
 %^^^ comment.block.nested.swi-prolog punctuation.definition.comment.swi-prolog

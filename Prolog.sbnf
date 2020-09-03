@@ -1,18 +1,27 @@
-name: SWI-Prolog
+[TYPE]
+
+name: #[TYPE]-Prolog
 extensions: pl pro
 first-line: ^#!.*\bswipl\b
 
 prototype = ( ~comment )* ;
 
-comment = '(%+).*\n?'{comment.line.percentage, 1: punctuation.definition.comment}
-        | nested-comment
-        ;
+comment
+= '(%+).*\n?'{comment.line.percentage, 1: punctuation.definition.comment}
+| multi-line-comment[TYPE]
+;
 
-nested-comment{comment.block.nested}
-    = '/\*(\*(?!/))?'{punctuation.definition.comment}
-      ( ~nested-comment )*
-      ~`*/`{punctuation.definition.comment}
-    ;
+# SWI-Prolog has nested comments, ISO-Prolog doesn't
+multi-line-comment['SWI']{comment.block.nested}
+= '/\*(\*(?!/))?'{punctuation.definition.comment}
+  ( ~multi-line-comment[TYPE] )*
+  ~`*/`{punctuation.definition.comment}
+;
+
+multi-line-comment['ISO']{comment.block}
+= '/\*(\*(?!/))?'{punctuation.definition.comment}
+  ~`*/`{punctuation.definition.comment}
+;
 
 main = ( shebang
        | rule
@@ -21,9 +30,9 @@ main = ( shebang
      ;
 
 shebang{comment.line.number-sign}
-    = '^#!'{punctuation.definition.comment.number-sign}
-      ~'$\n?'
-    ;
+= '^#!'{punctuation.definition.comment.number-sign}
+  ~'$\n?'
+;
 
 rule = atom-entity compound-term?
        ( `:-`{keyword.operator.definition.begin} value )?
@@ -36,7 +45,8 @@ fact = '(?=\S)' # Use a lookahead here as a capture-all for facts
        `.`{keyword.operator.definition.end}
      ;
 
-value-without-comma = single-value ( binary-operator-without-comma single-value )* ;
+value-without-comma
+= single-value ( binary-operator-without-comma single-value )* ;
 
 value = single-value ( binary-operator single-value )* ;
 
@@ -65,40 +75,43 @@ atom = '\b[a-z][[:alpha:]0-9_]*\b'
 atom-string{include-prototype: false} = `'` (~escape-sequence)* ~`'` ;
 
 operator-compound-term
-    = '([~^&*\-+=|\\/<>][~^&*\-+=|\\/<>.,]*)(\()'{1: constant.character.swi-prolog, 2: punctuation.section.parens.begin}
-      ( value-without-comma
-        ( `,`{punctuation.separator.sequence} value-without-comma )*
-      )?
-      `)`{punctuation.section.parans.end}
-    ;
+= '([~^&*\-+=|\\/<>][~^&*\-+=|\\/<>.,]*)(\()'{1: constant.character.swi-prolog, 2: punctuation.section.parens.begin}
+  ( value-without-comma
+    ( `,`{punctuation.separator.sequence} value-without-comma )*
+  )?
+  `)`{punctuation.section.parans.end}
+;
 
-escape-sequence = '\\([abcefnrstv\'\"`\n\\]|x\h\h+\\?|u\h{4}|U\h{8})'{constant.character.escape}
-                ;
+escape-sequence
+= '\\([abcefnrstv\'\"`\n\\]|x\h\h+\\?|u\h{4}|U\h{8})'{constant.character.escape}
+;
 
-compound-term = `(`{punctuation.section.parens.begin}
-                ( value-without-comma
-                  ( ','{punctuation.separator.sequence} value-without-comma )*
-                )?
-                `)`{punctuation.section.parens.end}
-              ;
+compound-term
+= `(`{punctuation.section.parens.begin}
+  ( value-without-comma
+    ( ','{punctuation.separator.sequence} value-without-comma )*
+  )?
+  `)`{punctuation.section.parens.end}
+;
 
-number = '(0b)[01_]+'{constant.numeric.integer.binary, 1: punctuation.definition.number.base}
-       | '(0x)[\h_]+'{constant.numeric.integer.hexadecimal, 1: punctuation.definition.number.base}
-       | '(0o)[0-7_]+'{constant.numeric.integer.octal, 1: punctuation.definition.number.base}
-       | '([0-9]{1,2})(\')[0-9a-z]+'{constant.numeric.integer, 1: punctuation.definition.number.base, 2: punctuation.separator.base}
-       | '[0-9]+\.[0-9]+'{constant.numeric.float}
-       | '[+-]?[0-9_]+'{constant.numeric.integer} '[0-9_]+'{constant.numeric.integer}*
-       ;
+number
+= '(0b)[01_]+'{constant.numeric.integer.binary, 1: punctuation.definition.number.base}
+| '(0x)[\h_]+'{constant.numeric.integer.hexadecimal, 1: punctuation.definition.number.base}
+| '(0o)[0-7_]+'{constant.numeric.integer.octal, 1: punctuation.definition.number.base}
+| '([0-9]{1,2})(\')[0-9a-z]+'{constant.numeric.integer, 1: punctuation.definition.number.base, 2: punctuation.separator.base}
+| '[0-9]+\.[0-9]+'{constant.numeric.float}
+| '[+-]?[0-9_]+'{constant.numeric.integer} '[0-9_]+'{constant.numeric.integer}*
+;
 
 variable = '\b[A-Z][[:alpha:]0-9_]*\b|\b_[[:alpha:]0-9_]+\b'{variable.parameter}
          | '_'{language.constant.underscore}
          ;
 
 string{meta.string string.quoted.double, include-prototype: false}
-    = `"`{punctuation.definition.string.begin}
-      (~escape-sequence)*
-      ~`"`{punctuation.definition.string.end}
-    ;
+= `"`{punctuation.definition.string.begin}
+  (~escape-sequence)*
+  ~`"`{punctuation.definition.string.end}
+;
 
 list = `[`{punctuation.section.brackets.begin}
        ( value-without-comma
@@ -125,7 +138,7 @@ binary-operator = binary-operator-without-comma
                 ;
 
 binary-operator-without-comma
-    = '\bis\b|>>|\^|=\.\.|=?<|>=?|==?|\*\*?|\+|->?|/|#=|\\='{keyword.operator}
-    | ';'{keyword.operator.logical.or}
-    | '->'{keyword.operator.logical.if}
-    ;
+= '\bis\b|>>|\^|=\.\.|=?<|>=?|==?|\*\*?|\+|->?|/|#=|\\='{keyword.operator}
+| ';'{keyword.operator.logical.or}
+| '->'{keyword.operator.logical.if}
+;
